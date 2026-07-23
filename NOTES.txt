@@ -1,0 +1,90 @@
+# Arkham Knight 3D — NOTES
+
+Updated: 2026-07-23
+
+## Install identity
+
+| Field | Value |
+|---|---|
+| Steam appid | 208650 |
+| Install path | `D:\SteamLibrary\steamapps\common\Batman Arkham Knight` |
+| Executable | `Binaries\Win64\BatmanAK.exe` |
+| StateFlags | 4 (fully installed) |
+| SizeOnDisk | 57,921,215,224 bytes (~53.9 GB) |
+| buildid | 13250859 |
+| Language | english |
+| GPU | AMD Radeon RX 7900 XTX (driver 32.0.31021.5001) |
+
+## Baseline (pre-stereo)
+
+- Stock `Binaries\Win64` had **no** `d3d11.dll` / `d3dx.ini` / `d3dxdm.ini` / `nvapi64.dll` / `dxgi.dll`.
+- File list saved: `baseline_Win64_filelist.txt`
+- Clean Story Mode launch before stereo was **not** recorded here (install proceeded after Steam finished). Use Steam **Verify Integrity** if you need a stock restore.
+
+## Stereo install (done)
+
+- Source: HelixMod `Batman_Arkham_Knight_geo11_fix.7z` staged from `ready_to_install\Win64`
+- Copied into: `D:\SteamLibrary\steamapps\common\Batman Arkham Knight\Binaries\Win64`
+- Files added: **49,866** (listed in `added_stereo_files.txt`)
+- Config confirmed in-game folder:
+  - `d3dxdm.ini` → `direct_mode = sbs`
+  - `d3dx.ini` → `force_stereo=2`
+- Key injectors present: `d3d11.dll`, `nvapi64.dll`, `d3dx.ini`, `d3dxdm.ini`, `d3dcompiler_47.dll`, `ShaderFixes` (739 files), caches
+- `BatmanAK.exe` unchanged after copy
+- Companions kept for fallback (not copied into game yet):
+  - `ready_to_install\companions\dxgi_3dmigoto_1.3.16.dll`
+  - `ready_to_install\companions\3DMigoto Loader.exe`
+  - `ready_to_install\companions\dxgi_geo11_loader.dll`
+
+## HelixMod recommendations to apply in-game
+
+- Disable chromatic aberration
+- Disable antialiasing (sharper stereo)
+- Prefer SSD (already on D:)
+
+## Next validation steps (you)
+
+1. Set projector to **SBS 3D** input (or validate SBS on a flat display first — half-width left/right views).
+2. Launch Story Mode via Steam.
+3. Check close props, mid buildings, skyline, rain, HUD, combat, Batmobile, cutscenes.
+4. If **no stereo at all** on AMD: copy `companions\dxgi_3dmigoto_1.3.16.dll` → game Win64 as `dxgi.dll` and retry; if still dead, try `3DMigoto Loader.exe` targeting `BatmanAK.exe`.
+5. Tune separation/convergence in `d3dxdm.ini` (`dm_separation`, `dm_convergence`) only after depth is visible.
+6. Optional later: try `direct_mode = tab` if the projector supports TAB.
+
+## Revert
+
+- Run `Binaries\Win64\uninstall.bat` from the fix, **or**
+- Delete the files listed in `added_stereo_files.txt`, **or**
+- Steam → Verify Integrity of Game Files
+
+## Crash fix attempt (2026-07-23 10:04)
+
+Symptom: AppHangB1 on BatmanAK.exe 1.6.2.0 at launch (not a hard fault).
+
+Applied:
+1. Upgraded `d3d11.dll` + `nvapi64.dll` to geo-11 **v0.7.10** (AMD crash fixes; kept AK ShaderFixes + d3dx.ini / d3dxdm.ini).
+2. Added `dxgi.dll` (3Dmigoto 1.3.16) for early load.
+3. Added `3DMigoto Loader.exe` + configured `[Loader]` for `BatmanAK.exe`.
+4. Confirmed `show_fps_monitor = false` and `direct_mode = sbs`.
+5. Launch helper: `Launch_ArkhamKnight_3D.bat` (in Win64 and project folder).
+
+Try order:
+1. Run `Launch_ArkhamKnight_3D.bat` (preferred for this game on modern drivers).
+2. Or Steam launch (dxgi early-load may be enough).
+3. First shader compile can freeze the window for several minutes � wait before killing.
+4. If still hanging: rename `d3d11.dll` + `dxgi.dll` to `.off` and Steam-launch once to prove vanilla works.
+
+## Launch test results (2026-07-23 ~10:09, agent)
+
+Method: `3DMigoto Loader.exe` from `Binaries\Win64`
+
+Result: **SUCCESS**
+- `BatmanAK.exe` stayed alive, `Responding=True`
+- Window title present: Batman Arkham Knight
+- Working set grew to ~5 GB; CPU accumulating (not frozen)
+- No AppHang/Error events during test
+- Loaded from game folder: `d3d11.dll`, `dxgi.dll`, `nvapi64.dll` (geo-11 path confirmed)
+- `ShaderCacheDM` populated (~48k files) � geo-11 shader path active
+
+Recommendation: launch with `Launch_ArkhamKnight_3D.bat` (loader), not bare Steam, until Steam-path is also verified.
+Game left running after test for user inspection.

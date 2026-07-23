@@ -1,0 +1,26 @@
+# Ignore third-party stereo binaries and local extracts (license + size)
+downloads/
+ready_to_install/
+crash_fix_backup_*/
+launch_tests/
+extracted*/
+*.7z
+*.dll
+*.exe
+!Launch_ArkhamKnight_3D.bat
+
+# Huge generated inventories / copy noise
+added_stereo_files.txt
+install_copy_log.txt
+ShaderCache/
+ShaderCacheDM/
+ShaderFixes/
+ShaderFixesDM/
+
+# OS / editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+.vscode/
+.idea/

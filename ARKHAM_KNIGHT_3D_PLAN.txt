@@ -1,0 +1,66 @@
+BATMAN: ARKHAM KNIGHT — STEREO 3D / VR PLAN
+
+Goal
+Run Batman: Arkham Knight in true stereoscopic 3D on the 3D projector. Phase 1 is side-by-side (SBS) output. Phase 2 tests top-and-bottom (TAB). VR is a later display experiment, not the first target.
+
+Why this game
+- Arkham Knight uses a DirectX 11 rendering path.
+- A game-specific HelixMod/Geo-11 fix exists for Batman: Arkham Knight DX11.
+- Geo-11 supports real geometric stereo, SBS, TAB, and interlaced output.
+- The project is a strong candidate for the AMD RX 7900 XTX because Geo-11 is documented to work on AMD hardware.
+
+References
+- Game-specific fix: https://helixmod.blogspot.com/2020/12/batman-arkham-knight-dx11.html
+- Geo-11 and output documentation: https://helixmod.blogspot.com/2022/06/announcing-new-geo-11-3d-driver.html
+- 3D Fix Manager: https://helixmod.blogspot.com/2017/05/3d-fix-manager.html
+
+Current status
+- Installed at D:\SteamLibrary\steamapps\common\Batman Arkham Knight (buildid 13250859, ~54 GB).
+- HelixMod geo-11 fix installed into Binaries\Win64 with direct_mode=sbs and force_stereo=2.
+- See NOTES.txt, DOWNLOADS.md, added_stereo_files.txt for details.
+- Next: launch Story Mode and validate SBS depth on the projector (AMD RX 7900 XTX).
+
+Phase 0 — Install and identify the exact build
+1. Install Batman: Arkham Knight through Steam.
+2. In Steam, right-click the game -> Manage -> Browse local files.
+3. Record the exact install folder in this project’s notes before adding any files.
+4. Launch Story Mode once with no stereo files installed.
+5. Record the game version, display resolution, graphics preset, and average performance in a normal gameplay scene.
+6. Verify Steam can successfully validate/repair the clean installation.
+
+Phase 1 — Safe stereo setup
+1. Read the current Arkham Knight DX11 fix instructions and download only the matching game-specific HelixMod fix.
+2. Make a text list of every file the fix adds to the game folder. Do not overwrite unknown files without recording them.
+3. Add the matching x64 Geo-11 files only after the game-specific fix is present.
+4. Configure Geo-11 for direct SBS output first.
+5. Start Story Mode and use a stable indoor/outdoor scene to validate depth.
+6. Check Batman, nearby props, distant buildings, particles, rain, shadows, HUD, cutscenes, and driving scenes.
+
+Phase 2 — Projector calibration
+1. Confirm the projector is set to its SBS 3D input mode.
+2. Adjust eye separation and convergence gradually; stop if depth is uncomfortable or the image doubles.
+3. Test TAB if the projector supports it. Prefer the output mode that looks sharpest and has the least crosstalk.
+4. Record the working resolution, refresh rate, projector mode, Geo-11 settings, and game graphics settings.
+5. Save a short test video and screenshots of correct stereo output.
+
+Phase 3 — Performance and stability
+1. Test walking, gliding, combat, Batmobile driving, menus, and cutscenes.
+2. Test low, medium, and high graphics presets. Stereo rendering can substantially increase GPU work.
+3. Choose a stable stereo preset before testing visual mods.
+4. Add no other graphics mod until the base stereo path is proven stable.
+
+VR goal — later only
+- First option: use the projector-stereo setup as proof that the game renders correct left/right views.
+- Second option: evaluate a VR display layer only if it preserves true stereo and does not require rewriting the game’s camera system.
+- Do not assume a headset will provide full head tracking, motion controls, or VR-safe HUD. Those would be separate features.
+
+Success criteria
+- Story Mode displays a stable left/right SBS image with real scene depth.
+- The projector shows comfortable 3D without obvious doubled geometry.
+- HUD and gameplay remain usable.
+- Removing the added stereo files or Steam verification restores the normal game.
+
+Do not do yet
+- Do not create a custom Arkham renderer mod.
+- Do not combine multiple shader/graphics/VR injectors on the first test.
+- Do not treat an old/unknown download as compatible with the currently installed game build.
