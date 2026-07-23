@@ -1,4 +1,4 @@
-# Arkham Knight 3D — NOTES
+# Arkham Knight 3D ? NOTES
 
 Updated: 2026-07-23
 
@@ -27,8 +27,8 @@ Updated: 2026-07-23
 - Copied into: `D:\SteamLibrary\steamapps\common\Batman Arkham Knight\Binaries\Win64`
 - Files added: **49,866** (listed in `added_stereo_files.txt`)
 - Config confirmed in-game folder:
-  - `d3dxdm.ini` → `direct_mode = sbs`
-  - `d3dx.ini` → `force_stereo=2`
+  - `d3dxdm.ini` ? `direct_mode = sbs`
+  - `d3dx.ini` ? `force_stereo=2`
 - Key injectors present: `d3d11.dll`, `nvapi64.dll`, `d3dx.ini`, `d3dxdm.ini`, `d3dcompiler_47.dll`, `ShaderFixes` (739 files), caches
 - `BatmanAK.exe` unchanged after copy
 - Companions kept for fallback (not copied into game yet):
@@ -44,10 +44,10 @@ Updated: 2026-07-23
 
 ## Next validation steps (you)
 
-1. Set projector to **SBS 3D** input (or validate SBS on a flat display first — half-width left/right views).
+1. Set projector to **SBS 3D** input (or validate SBS on a flat display first ? half-width left/right views).
 2. Launch Story Mode via Steam.
 3. Check close props, mid buildings, skyline, rain, HUD, combat, Batmobile, cutscenes.
-4. If **no stereo at all** on AMD: copy `companions\dxgi_3dmigoto_1.3.16.dll` → game Win64 as `dxgi.dll` and retry; if still dead, try `3DMigoto Loader.exe` targeting `BatmanAK.exe`.
+4. If **no stereo at all** on AMD: copy `companions\dxgi_3dmigoto_1.3.16.dll` ? game Win64 as `dxgi.dll` and retry; if still dead, try `3DMigoto Loader.exe` targeting `BatmanAK.exe`.
 5. Tune separation/convergence in `d3dxdm.ini` (`dm_separation`, `dm_convergence`) only after depth is visible.
 6. Optional later: try `direct_mode = tab` if the projector supports TAB.
 
@@ -55,7 +55,7 @@ Updated: 2026-07-23
 
 - Run `Binaries\Win64\uninstall.bat` from the fix, **or**
 - Delete the files listed in `added_stereo_files.txt`, **or**
-- Steam → Verify Integrity of Game Files
+- Steam ? Verify Integrity of Game Files
 
 ## Crash fix attempt (2026-07-23 10:04)
 
@@ -71,8 +71,23 @@ Applied:
 Try order:
 1. Run `Launch_ArkhamKnight_3D.bat` (preferred for this game on modern drivers).
 2. Or Steam launch (dxgi early-load may be enough).
-3. First shader compile can freeze the window for several minutes � wait before killing.
+3. First shader compile can freeze the window for several minutes ? wait before killing.
 4. If still hanging: rename `d3d11.dll` + `dxgi.dll` to `.off` and Steam-launch once to prove vanilla works.
+
+## Working SBS stack (2026-07-23 ~10:30) ? USE THIS
+
+Render-thread Fatal was caused by HelixMod?s bundled geo-11 **v0.6.x** `d3d11.dll` with `force_stereo=2`.
+
+**Working combination (agent-verified 75s+ then relaunched stable):**
+1. HelixMod Arkham Knight `ShaderFixes` + `d3dx.ini` (`force_stereo=2`, `allow_platform_update=2`)
+2. geo-11 **v0.7.10** `d3d11.dll` + `nvapi64.dll` + `d3dxdm.ini`
+3. `d3dxdm.ini`: `direct_mode = sbs`, `show_fps_monitor = false`, `dm_auto_convergence = 0`
+4. `dxgi.dll` from 3Dmigoto 1.3.16
+5. Launch via Steam: `steam://rungameid/208650`
+
+Isolation: `force_stereo=0` (proxy only) was always stable; stereo only crashed on old geo-11 DLL.
+
+See `working_config\STACK.txt`.
 
 ## Launch test results (2026-07-23 ~10:09, agent)
 
@@ -84,7 +99,28 @@ Result: **SUCCESS**
 - Working set grew to ~5 GB; CPU accumulating (not frozen)
 - No AppHang/Error events during test
 - Loaded from game folder: `d3d11.dll`, `dxgi.dll`, `nvapi64.dll` (geo-11 path confirmed)
-- `ShaderCacheDM` populated (~48k files) � geo-11 shader path active
+- `ShaderCacheDM` populated (~48k files) ? geo-11 shader path active
 
 Recommendation: launch with `Launch_ArkhamKnight_3D.bat` (loader), not bare Steam, until Steam-path is also verified.
 Game left running after test for user inspection.
+
+## Render crash fix (2026-07-23 ~10:20)
+
+Symptom: `Rendering thread exception: Fatal error!` with stack in game `d3d11.dll` (geo-11).
+
+Cause: mismatched stack ? geo-11 **v0.7.10** `d3d11.dll`/`nvapi64.dll` mixed with HelixMod fix `d3dxdm.ini`/ShaderFixes.
+
+Fix applied:
+1. Restored **matched** HelixMod package `d3d11.dll` + `nvapi64.dll` + inis from `ready_to_install`.
+2. Kept `dxgi.dll` (3Dmigoto 1.3.16) for early load.
+3. Cleared `ShaderCache` / `ShaderCacheDM`.
+4. `allow_platform_update=2`, `force_stereo=2`, `direct_mode=sbs`.
+5. Launch via **Steam** (`steam://rungameid/208650`) ? loader-alone without Steam DRM failed in retest.
+
+Agent retest: game window stayed up 90s+, Responding, ~4GB+ RAM, no Fatal Message dialog; game-folder `d3d11.dll`/`dxgi.dll`/`nvapi64.dll` loaded.
+
+## Correction (final)
+
+The ~10:20 note was incomplete. Restoring HelixMod's **bundled** geo-11 DLL still Fatal'd with stereo.
+**Final working fix:** geo-11 **v0.7.10** `d3d11.dll` + `nvapi64.dll` + `d3dxdm.ini`, keep HelixMod `ShaderFixes`/`d3dx.ini`, plus `dxgi.dll`, Steam launch.
+Agent confirmed: alive 75s+ then again ~minute+ at ~5GB RAM, title Arkham Knight, no Message fatal; `ShaderCacheDM` active.

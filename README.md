@@ -7,10 +7,10 @@ Project docs, launch helpers, and install notes for running **Batman: Arkham Kni
 ## Status (2026-07-23)
 
 - Steam install: Arkham Knight DX11 (`Binaries\Win64\BatmanAK.exe`)
-- HelixMod game-specific geo-11 fix installed + upgraded to **geo-11 v0.7.10** injectors (AMD)
-- Early-load `dxgi.dll` (3Dmigoto 1.3.16) added
-- **Launch via `3DMigoto Loader.exe`** — plain Steam launch AppHang’d on AMD RX 7900 XTX; loader launch succeeded in testing
-- Output configured: `direct_mode = sbs`, `force_stereo=2`, `show_fps_monitor = false`
+- **Working SBS stack on AMD RX 7900 XTX** (agent-verified): HelixMod ShaderFixes + **geo-11 v0.7.10** `d3d11.dll`/`nvapi64.dll`/`d3dxdm.ini` + 3Dmigoto `dxgi.dll`
+- HelixMod’s bundled older geo-11 DLL **crashes** with `Rendering thread exception: Fatal error!` when `force_stereo=2` — replace injectors with v0.7.10
+- Launch via **Steam** (`steam://rungameid/208650` / `Launch_ArkhamKnight_3D.bat`)
+- Output: `direct_mode = sbs`, `force_stereo=2`, `show_fps_monitor = false`, `dm_auto_convergence = 0`
 
 ## Quick start
 
@@ -21,10 +21,11 @@ Project docs, launch helpers, and install notes for running **Batman: Arkham Kni
 3. Extract into  
    `...\steamapps\common\Batman Arkham Knight\Binaries\Win64`  
    (same folder as `BatmanAK.exe`).
-4. Download [geo-11 v0.7.10](https://helixmod.blogspot.com/2022/06/announcing-new-geo-11-3d-driver.html) and replace **only**:
+4. Download [geo-11 v0.7.10](https://helixmod.blogspot.com/2022/06/announcing-new-geo-11-3d-driver.html) and replace from the package’s `x64` folder:
    - `d3d11.dll`
-   - `nvapi64.dll`  
-   from the package’s `x64` folder (keep the game fix’s `ShaderFixes` + `d3dx.ini` / `d3dxdm.ini`).
+   - `nvapi64.dll`
+   - `d3dxdm.ini` (required — keep HelixMod `ShaderFixes` + `d3dx.ini`)
+   Do **not** keep the older geo-11 DLL from the HelixMod archive; it fatals on this GPU.
 5. Download [`dxgi.dll` from 3Dmigoto 1.3.16](https://github.com/bo3b/3Dmigoto/releases/download/1.3.16/dxgi.dll) into that same `Win64` folder.
 6. Copy `3DMigoto Loader.exe` from geo-11’s `loader\x64` into `Win64`.
 7. In `d3dx.ini` set / uncomment:
@@ -36,12 +37,13 @@ Project docs, launch helpers, and install notes for running **Batman: Arkham Kni
 
    force_stereo=2
    ```
-8. In `d3dxdm.ini`:
+8. In `d3dxdm.ini` (from geo-11 v0.7.10):
    ```ini
    direct_mode = sbs
    show_fps_monitor = false
+   dm_auto_convergence = 0
    ```
-9. Launch with [`Launch_ArkhamKnight_3D.bat`](Launch_ArkhamKnight_3D.bat) (runs the loader), **not** Steam alone.
+9. Launch with [`Launch_ArkhamKnight_3D.bat`](Launch_ArkhamKnight_3D.bat) (Steam protocol), **not** the standalone loader alone.
 10. Set the projector to **SBS** 3D input. Disable chromatic aberration and AA in-game for sharper stereo.
 
 Optional PowerShell helper: [`scripts/Install-FromDownloads.ps1`](scripts/Install-FromDownloads.ps1) (expects archives already downloaded into `downloads\`).
