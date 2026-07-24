@@ -1,38 +1,43 @@
-﻿# Arkham Knight 3D — Stable baseline (2026-07-24)
+# Arkham Knight 3D — Locked half-SBS recipe (2026-07-24)
 
-## Full SBS compatibility
+## What actually packs L|R
 
-**Full SBS is compatible** with geo-11 on this stack. It is not a separate unsupported mode.
+Prior verified session (`sbs_after_sep.png`, user said "ok good now"):
+**`direct_mode = sbs` alone does not pack the output.**
 
-- geo-11 `direct_mode = sbs` outputs **half** SBS (960+960 into 1920).
-- **Full SBS** (1920 per eye) = same stereo path + `upscaling=1` with `width=3840` `height=1080`.
-- Projector must be set to **Full Side-by-Side** (not Half). If the projector only accepts Half SBS, use half packing instead.
+Required Present packer:
 
-## Locked stable files
+1. `force_stereo = 2`
+2. `direct_mode = sbs`
+3. `upscaling = 1` with `width = 1920` `height = 1080`
+4. `include = ShaderFixes\upscale.ini` (CustomShaderUpscale)
+5. no `nvapi64.dll`, no Helix hash ShaderFixes
+6. `BmSystemSettings.ini` UTF-8 **without BOM**
 
-Copied from live `Binaries\Win64` into `working_config/`:
+**Do not** turn `upscaling` off to "stabilize" — that is how the split was lost.
 
-| Item | Value |
-|------|--------|
-| force_stereo | 2 |
-| force_no_nvapi | 1 |
-| direct_mode | sbs |
-| upscaling | 0 (enable after eye proof) |
-| show_fps_monitor | false |
-| nvapi64 / dxgi | absent |
-| Helix ShaderFixes | off |
-| Game Res | 1920x1080, InteractiveSmoke=False |
-| BmSystemSettings encoding | UTF-8 **without BOM** |
+## dxgi.dll
+
+Optional AMD early-inject. One older working session had it; **2026-07-24** restore with `downloads\dxgi.dll` Fatal'd immediately on render thread → kept **OFF**. Retry only after packer is re-proven (prefer geo-11 loader x64 `dxgi` over the downloads copy).
+
+## Full SBS
+
+Not incompatible. Same packer with `width = 3840` `height = 1080`, projector set to **Full** Side-by-Side.
 
 ## Do not
 
-- Rewrite `BmSystemSettings.ini` with PowerShell `Set-Content -Encoding UTF8` (adds BOM → Fatal).
-- Reinstall full Helix light fixes on AMD until bare SBS works.
-- Stack dxgi + d3d11 until packing is proven.
+- Rewrite `BmSystemSettings.ini` with PowerShell `Set-Content -Encoding UTF8` (BOM → Fatal).
+- Reinstall full Helix light fixes on AMD until packer is solid.
+- Global-replace `dm_stereo_enabled` (breaks `= !dm_stereo_enabled` hotkeys).
 
-## Next
+## Hotkeys
 
-1. Anaglyph eye proof  
-2. Half SBS visible  
-3. Full SBS 3840x1080  
-4. Optional: 3Dmigoto 1.3.16 dxgi / Loader  
+- Ctrl+F1 — Sep/Conv overlay
+- Ctrl+F3 / Ctrl+F4 — separation
+- Ctrl+F5 / Ctrl+F6 — convergence (±0.15)
+- Ctrl+F — FPS overlay
+
+## Launch
+
+`Launch_ArkhamKnight_3D.bat` → Steam `-applaunch 208650`
+Projector: **Half SBS**. Title/menu frames can look nearly mono — judge on gameplay.

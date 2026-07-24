@@ -102,23 +102,23 @@ After lights/shader work and audits, that state was **lost** and not cleanly re-
 
 ---
 
-## 6. Locked intent on disk (last agent pass)
+## 6. Locked half-SBS recipe (restored 2026-07-24)
 
-Treat as **intent**, not as verified success:
+Prior verified session + `sbs_after_sep.png`: **`direct_mode=sbs` alone does not pack**. Do not "stabilize" by turning the packer off.
 
 | Item | Value |
 |---|---|
 | `force_stereo` | `2` |
 | `direct_mode` | `sbs` |
-| Packer | `upscaling=1`, `width/height=1920/1080`, `upscale.ini` Present run |
-| `get_resolution_from` | `swap_chain` (avoid large_2d 8K latch) |
-| `nvapi64.dll` / `dxgi.dll` | **absent** (disabled) |
-| Hotkeys | `dm_stereo_enabled = !dm_stereo_enabled` on Ctrl+T and F8 |
-| Game res | `ResX/ResY=1920/1080` |
+| Packer | `upscaling=1`, `width/height=1920/1080`, `include = ShaderFixes\upscale.ini` |
+| `dxgi.dll` | **present** (3Dmigoto early inject on AMD) |
+| `nvapi64.dll` | **absent** |
+| Hotkeys | `dm_stereo_enabled = !dm_stereo_enabled` on Ctrl+T and F8; conv ±0.15 |
+| Game res | `ResX/ResY=1920/1080`, UTF-8 **no BOM** |
 | Helix light shaders | **off** |
 
 Launch: `Binaries\Win64\Launch_ArkhamKnight_3D.bat`  
-Projector: **Half SBS / Side-by-Side**.
+Projector: **Half SBS / Side-by-Side**. Full SBS = same stack at `3840x1080`.
 
 ---
 
