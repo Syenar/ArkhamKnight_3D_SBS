@@ -455,3 +455,7 @@ Fatal storm root cause: BmSystemSettings.ini written with UTF-8 BOM (EF BB BF) v
 Then force_stereo=2 + Full SBS (upscaling 3840x1080) + no nvapi: ALIVE 70s+ (END run), no Fatal Message.
 Capture live_fullsbs_fixed_011202.png taken — verify visually for L|R (metrics L dark / R lit may be title composition).
 Never rewrite BmSystemSettings with BOM again.
+
+## Eye proof step 1 — anaglyph (01:54)
+direct_mode=anaglyph on stable baseline (force_stereo=2, upscaling=0, no nvapi/dxgi).
+Result: END=run shot=C:\Users\samsa\Desktop\Workplace\Projects\Arkham 3D Projects\Arkham Knight 3D\eyeproof_anaglyph_015411.png

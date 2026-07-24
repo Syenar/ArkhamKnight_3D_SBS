@@ -31,6 +31,8 @@ probe_*.png
 probe2_*.png
 sbs_*.png
 half_sbs_*.png
+eyeproof_*.png
+mono_*.png
 anaglyph_proof.png
 client_now.png
 desktop_capture.png
@@ -38,7 +40,10 @@ d3d11_log*.txt
 fatal_*.txt
 loader_*.txt
 nvapi_diag_snippet.txt
+hdr_kill_log.txt
 quarantine*/
+FULL_RESET_*/
+LEGACY_PURGE*/
 working_config/*.pre_*
 working_config/pre_*/
 working_config/half_sbs_proof.png
