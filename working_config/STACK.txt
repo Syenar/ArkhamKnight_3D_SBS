@@ -1,20 +1,20 @@
-LOCKED HALF-SBS PACKER RECIPE (verified prior session: sbs_after_sep.png)
+LOCKED HALF-SBS PACKER (from verified prior session: sbs_after_sep.png)
 
-Required for L|R pack (do NOT turn off to "stabilize"):
+Required - do NOT turn off to stabilize:
 - force_stereo=2
 - force_no_nvapi=1
 - direct_mode=sbs
 - upscaling=1
 - width=1920 height=1080
+- upscale_mode=1
+- get_resolution_from=swap_chain
 - include = ShaderFixes\upscale.ini
 - no nvapi64.dll, no Helix hash ShaderFixes
 - BmSystemSettings 1920x1080, UTF-8 NO BOM
 - show_fps_monitor=false
+- dxgi.dll OFF (Fatal with downloads\dxgi.dll on 2026-07-24)
 
-dxgi.dll: optional AMD early-inject. Was present in one working session;
-2026-07-24 restore with downloads\dxgi.dll Fatal'd immediately -> kept OFF.
-Retry only after packer is proven again, and prefer geo-11 loader x64 dxgi.
-
-Full SBS next: same packer, width/height=3840x1080, projector=Full SBS.
-Hotkeys: Ctrl+F1 overlay, Ctrl+F3/F4 sep, Ctrl+F5/F6 conv (+/-0.15), Ctrl+F FPS
+Full SBS: same packer, width/height=3840x1080, projector=Full SBS.
+Judge on gameplay (menus/splash often look mono).
+Hotkeys: Ctrl+F1, Ctrl+F3/F4 sep, Ctrl+F5/F6 conv (+/-0.15), Ctrl+F FPS
 Launch: Launch_ArkhamKnight_3D.bat
