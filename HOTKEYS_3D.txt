@@ -1,0 +1,16 @@
+﻿Arkham Knight half-SBS — what you should see
+============================================
+GOAL: one window, LEFT eye | RIGHT eye side by side (half SBS), at 1080p.
+NOT 8K. NOT a single full-frame mono image.
+
+If it looks like ultra-high-res mono: res was wrong (fixed to 1920x1080).
+If hotkeys did nothing: they must be dm_stereo_enabled = !dm_stereo_enabled (fixed).
+
+Keys (game window focused):
+  F8 or Ctrl+T  = toggle stereo on/off
+  Ctrl+F1       = show Sep/Conv numbers
+  Ctrl+F3/F4    = separation -
+  Ctrl+F5/F6    = convergence -
+
+Launch: Binaries\Win64\Launch_ArkhamKnight_3D.bat
+Projector: Half Side-by-Side / SBS 3D mode.

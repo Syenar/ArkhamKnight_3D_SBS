@@ -124,3 +124,334 @@ Agent retest: game window stayed up 90s+, Responding, ~4GB+ RAM, no Fatal Messag
 The ~10:20 note was incomplete. Restoring HelixMod's **bundled** geo-11 DLL still Fatal'd with stereo.
 **Final working fix:** geo-11 **v0.7.10** `d3d11.dll` + `nvapi64.dll` + `d3dxdm.ini`, keep HelixMod `ShaderFixes`/`d3dx.ini`, plus `dxgi.dll`, Steam launch.
 Agent confirmed: alive 75s+ then again ~minute+ at ~5GB RAM, title Arkham Knight, no Message fatal; `ShaderCacheDM` active.
+
+## Community research (2026-07-23 ~11:22)
+
+Sources:
+- https://helixmod.blogspot.com/2020/12/batman-arkham-knight-dx11.html (official AK geo-11 fix)
+- https://helixmod.blogspot.com/2022/06/announcing-new-geo-11-3d-driver.html (geo-11 install)
+- https://www.mtbs3d.com/phpbb/viewtopic.php?t=26311 (modern-driver SBS failures / workarounds)
+
+Official install:
+1. Extract HelixMod geo-11 AK fix into Binaries\Win64
+2. Set direct_mode in d3dxdm.ini (sbs default)
+3. force_stereo=2 in d3dx.ini
+4. Optional dxgi.dll from 3Dmigoto 1.3.16 ONLY if stereo never triggers on new GPUs/drivers
+5. Disable chromatic aberration / AA; play from SSD for first-time shader compile
+6. show_fps_monitor=false avoids launch crashes (MTBS + later geo-11 defaults)
+
+When Steam proxy fails to trigger SBS (common on modern drivers):
+- MTBS fix that worked: 3DMigoto Loader.exe with [Loader] target=BatmanAK.exe, module=d3d11.dll, launch=BatmanAK.exe
+- IMPORTANT: module must be d3d11.dll — do NOT rename to 3dmigoto.dll (loader rejects non-geo-11 / wrong module)
+- Alternate: add dxgi.dll and normal launch (works for some; broke THIS AMD system)
+
+Local isolation vs community:
+- dxgi.dll + d3d11.dll here = hang at ~57MB, no window (overlapping proxies) → omit dxgi
+- d3d11.dll alone + force_stereo=2 = stable 100s+, window + growing RAM
+- Wrong earlier attempt: renamed d3d11→3dmigoto.dll for delayed inject → loader error "is not geo-11"
+
+Current locked stack: see working_config\STACK.txt
+
+## DLL error root cause (2026-07-23 ~11:50) — FIXED
+
+Error: `The requested module ... is not geo-11` with description `3Dmigoto - d3d11.dll`
+
+Community/code cause:
+- geo-11 Loader checks FileDescription for `geo-11`
+- HelixMod AK package ships an older `d3d11.dll` labeled `3Dmigoto - d3d11.dll` → rejected
+- geo-11 v0.7.10 `d3d11.dll` is labeled `geo-11 - d3d11.dll` → accepted
+- Also: geo-11 depends on `D3DCOMPILER_47.dll` (DarkStarSword / bo3b#178); game only had `_46` → copy `d3dcompiler_47.dll` beside it
+
+MTBS working Arkham recipe applied:
+```
+[Loader]
+target = BatmanAK.exe
+module = d3d11.dll
+launch = BatmanAK.exe
+```
+Launch: `Launch_ArkhamKnight_3D.bat` → runs geo-11 `3DMigoto Loader.exe` from Win64
+Verified: loader exit 0, BatmanAK started, no geo-11 identity error.
+
+## Missing-file hunt (2026-07-23 ~12:10)
+
+User still saw DLL error. Actual causes found:
+
+1. **Wrong working directory**: running Loader outside Win64 → `Unable to open d3dx.ini` (reproduced).
+2. **Wrong DLL identity**: Helix `3dmigoto.dll` / `d3d11.dll` FileDescription `3Dmigoto - d3d11.dll` → geo-11 Loader rejects (`is not geo-11`). Must use geo-11 v0.7.10 `d3d11.dll` (`geo-11 - d3d11.dll`).
+3. **Missing deps we had not installed**:
+   - `d3dcompiler_47.dll` (geo-11 import; game only shipped `_46`)
+   - `loader\x64\dxgi.dll` from geo-11 package (early inject helper — different from 3Dmigoto 1.3.16 dxgi)
+   - geo-11 `ShaderFixes\help_text\*` support files (5 files were absent)
+4. **Trap launchers**: quarantine + companions `3DMigoto Loader.exe` disabled (`.DO_NOT_USE`).
+
+Loader verification after fix: `d3d11.dll description: geo-11 - d3d11.dll` → `3DMigoto loaded :)`
+Launch ONLY via `Launch_ArkhamKnight_3D.bat` (forces `/D` to Win64).
+
+## Overlap fix (2026-07-23 ~12:47) — user confirmed
+
+Win64 had two injectors fighting:
+- `d3d11.dll` = geo-11 (correct; Loader module)
+- `dxgi.dll` = second hook (3Dmigoto/geo-11 loader dxgi) → Operand type 50 spam + [Anaglyph] noise
+
+Action:
+- Renamed `dxgi.dll` → `dxgi.dll.DISABLED_overlap_with_geo11` (quarantine_overlap copy)
+- Left `d3dxdm.ini` `direct_mode = sbs` ([Anaglyph] unused; warning cosmetic)
+- Removed global ReShade Vulkan ImplicitLayer from HKCU (Fight Night leftover)
+- Relaunch via `Launch_ArkhamKnight_3D.bat` so only geo-11 `d3d11.dll` loads
+
+Policy: leave dxgi disabled if SBS is good. Re-add Fight Night ReShade Vulkan layer only when needed for that project.
+
+## Honest status (2026-07-23 ~13:15) — 3D NOT WORKING
+
+User correctly called out false success claims. Process-alive / loader-OK is NOT SBS.
+
+Facts:
+- geo-11 `direct_mode = sbs` is **half** SBS (stated in d3dxdm.ini comments).
+- Full SBS needs either `upscaling=1` + `width=3840 height=1080` (Dirt Rally / community) OR game native `3840x1080` so half-of-3840 = 1920/eye.
+- Both Full-SBS attempts crashed / exited (~50s) here; no proof screenshot captured.
+- Primary display reported as 1707x960 (DPI-scaled) — may not be the 3D projector.
+
+Do not mark stereo done until `stereo_proof.png` shows clear left/right parallax (and Full SBS frame ~3840 wide if that is the goal).
+
+## Switch to Half SBS (2026-07-23 ~13:31)
+
+User: use half SBS; Full SBS causing problems.
+Applied: `direct_mode=sbs`, `upscaling=0`, game `1920x1080`, no dxgi, geo-11 Loader launch.
+Projector should be set to **Half-SBS / Side-by-Side**, not Full SBS.
+
+## Render-thread Fatal ROOT CAUSE (2026-07-23 ~14:28)
+
+Same crash for hours: `Rendering thread exception: Fatal error!` in game `d3d11.dll` (geo-11).
+
+Internet + isolation:
+- Appuals/Steam: disable GameWorks + Interactive Smoke/Fog for this Fatal
+- Local A/B: **Helix `ShaderFixes` / `UE3_BatmanAK.ini` regex + `force_stereo=2` = Fatal**
+- **Bare geo-11 v0.7.10** (no Helix shaders) + GameWorks off = **alive 120s+, fatal=False**
+
+Tradeoff: half-SBS may work but without Helix fixes (halos/2D effects possible).
+Do NOT restore Helix ShaderFixes until a softer regex mode is proven on AMD.
+
+## Half-SBS VISUAL PROOF (2026-07-23 ~14:51)
+
+Screenshot `half_sbs_proof.png`: L/R meanAbsDiff=260 (>>10) — packing detected.
+Config: bare geo-11, force_stereo=2, direct_mode=sbs, no Helix ShaderFixes, no dxgi, Steam launch.
+Desktop copy of proof image saved.
+
+## Gap acknowledged (2026-07-23 ~14:55)
+
+User goal = VISIBLE left|right split. DLL/log/process alive is NOT success.
+Prior `half_sbs_proof.png` was Alt+Tab false positive — retracted.
+
+Missing piece per MTBS Arkham thread: Steam can load geo-11 but stay visually mono.
+Fix: launch via `3DMigoto Loader.exe` with:
+  [Loader] target=BatmanAK.exe module=d3d11.dll launch=BatmanAK.exe
+`launch=` was missing; bats were steam:// only. Both fixed. Loader relaunch done.
+
+## Launch bat bug fixed (2026-07-23 ~15:07)
+Cause: CMD parse error `\Steam\steam.exe was unexpected` from unquoted `(x86)` inside `if ()` block.
+Fix: `start "" steam://rungameid/208650` (no Program Files path in bat).
+Verified by agent: BatmanAK healthy window after running the bat.
+
+## HALF-SBS WORKING (2026-07-23 ~15:21) — agent-verified screenshot
+
+Root cause of mono-with-green-FPS: `direct_mode=sbs` alone did NOT pack output on this AMD box.
+Fix: enable `upscaling=1` + `include = ShaderFixes\upscale.ini` (forces present/upscale path that applies SBS packing).
+Also kept `dxgi.dll` (3Dmigoto 1.3.16) per Helix non-Nvidia note.
+
+Verified `half_sbs_proof.png`: visible left|right split (cinematic with mirrored subtitles / Batman logo / FPS in each half).
+
+Follow-up: later captures show eyeDiff~106-111 (real L/R parallax), not identical duplicates. Packing + stereo both active with upscaling=1 stack.
+
+## Lights/convergence (2026-07-23 ~15:40)
+
+User: separation moves lights/shadows weirdly; convergence seems to do nothing.
+
+Cause:
+1. Light/shadow swim = missing stereo shader fixes (bare geo-11). Full `UE3_BatmanAK.ini` regex Fatals on this AMD box (~84s).
+2. Convergence hotkeys were `+0.01` per tick — invisible. Also `dm_auto_convergence` makes F5/F6 adjust popout bias instead of convergence.
+
+Actions tried: install masterotaku geo-11 FixFiles shaders; disable UE3 regex; enlarge convergence steps to +5 on 168-scale; `dm_auto_convergence=0`.
+
+## User light/convergence report follow-up
+
+- Arkham light/shadow stereo fix (UE3 regex + hash shaders) **Fatals on AMD** here; cannot ship it yet.
+- Convergence hotkeys were ineffective because step was `+0.01`; now `+0.15`. `dm_auto_convergence=0` so F5/F6 move convergence (not popout bias).
+- Restored stable stack: upscaling=1 SBS, **no dxgi**, bare ShaderFixes. Alive 100s+ without Fatal.
+- Tip: `Ctrl+F1` toggles Sep/Conv overlay readout.
+
+## SBS audit (2026-07-23 ~16:00)
+
+User: not SBS; looks like 8K at start.
+Root causes found:
+- `get_resolution_from = large_2d_depth_stencil_if_swap_chain_native` can latch onto huge UE3 depth targets.
+- `BmSystemSettings.ini` still had `ResX=3840 ResY=2160`.
+- `hunting=2` left on; `auto_detect_depth_buffer=1`.
+Fixes applied; upscaling SBS path kept.
+
+## Fatal diagnosis (2026-07-23 ~16:30) — ACCESS_VIOLATION in geo-11 stereo path
+
+Evidence (controlled A/B, not guesses):
+
+1. Fatal dialog stack always includes game-folder `d3d11.dll` (geo-11), then `BatmanAK.exe`. Windows Event 1000: exception `0xc0000005` (ACCESS_VIOLATION), fault module `ntdll.dll` offset `0x2f6a3`.
+2. `force_stereo=0` + same DLLs: **no Fatal**, process alive ~100s / ~4GB RAM.
+3. `force_stereo=2` + `upscaling=0`: **Fatal** at splash (~8–12s). Upscaling is NOT required to crash.
+4. `force_stereo=2` + exact `working_config` restore + 90s cool-off: still **Fatal**.
+5. `force_stereo=2` with `nvapi64.dll` removed: still **Fatal** (log: Can't get nvapi handle / NvAPI_Initialize failed).
+6. `d3d11.dll` / `nvapi64.dll` SHA256 match stock geo-11 v0.7.10. Ini keys match `working_config` that produced `half_sbs_proof.png` at 15:21.
+7. GameWorks / Interactive Smoke already off. No Helix hash ShaderFixes loaded.
+
+Conclusion: current crash is **geo-11 stereo enable (force_stereo=2)**, not packing/upscale/ini drift/DLL swap. Same stack worked at 15:21; from ~16:06 Event Log shows repeated identical AV Fatals after relaunch thrash. Most likely **GPU/driver soft-break after crash storm** (reboot / device reset), not a config mistake.
+
+Disk left at `working_config` (force_stereo=2, upscaling=1, sbs). Do **one** cold launch after reboot — do not kill-loop.
+
+
+## Upscaling OFF + reboot did NOT fix Fatal (2026-07-23 ~16:56)
+
+User rebooted; still Fatal (Event 1000: `0xc0000005` ntdll, plus `0xc0000409` crashhandler64.dll). Soft-break theory rejected.
+
+**Upscaling is NOT from Arkham Knight.** It is a geo-11/3Dmigoto Present hook (`ShaderFixes\upscale.ini` + `upscaling=1`) that was enabled only because on this AMD box `direct_mode=sbs` alone left a mono image; the upscale Present path was what packed half-SBS in the 15:21 proof. Same-res 1920x1080 "upscale" is a packing force, not the game rendering at higher res.
+
+Disabled now (`upscaling=0`, include commented, Present run commented). Also set `force_stereo=0` so launches do not immediately Fatal while stereo path is broken.
+
+
+## RESTORED playable half-SBS (2026-07-23 ~17:05)
+
+Cause of break after lights/shader work: mangled ini / leftover state from Helix+masterotaku attempts and audit edits — not the upscale packer itself.
+
+Fix: wiped to **stock geo-11 v0.7.10** DLLs + stock `ShaderFixes`, cleared caches, minimal SBS edits only:
+- `force_stereo=2`, `force_no_nvapi=1`
+- `direct_mode=sbs`, `dm_separation=50`, `dm_convergence=2.0`, `dm_auto_convergence=0`
+- `upscaling=1` + `include = ShaderFixes\upscale.ini` (geo-11 SBS packer; not a game setting)
+- no `dxgi`, no Helix hash shaders, `shader_regex_patch_mode=0`
+- 1920x1080, GameWorks off
+
+Verified: cold launch alive, READY full window, stable 45s+ hold, proof `half_sbs_proof.png`.
+Lights/shadow swim may return (bare geo-11) — do **not** reinstall Helix UE3 regex on AMD.
+
+Launch: `Binaries\Win64\Launch_ArkhamKnight_3D.bat`
+
+
+## FIXED — playable half-SBS again (2026-07-23 ~17:10)
+
+Break after lights/shaders: mangled ini state from Helix/masterotaku attempts. Clean stock geo-11 restore fixed the Fatal.
+
+Packing: `upscaling=1` produced **left content + black right**. Switched packer to `include = ShaderFixes\3dvision2sbs.ini` with `mode = 2` (SBS), `upscaling=0`.
+
+Verified capture: leftBri/rightBri both lit, eyeDiff~64 (parallax). Game left running.
+
+Do **not** reinstall Helix UE3 light fixes on AMD (Fatals). Swimmy lights are the tradeoff until a safe subset exists.
+
+
+## PLAYABLE half-SBS restored (2026-07-23 ~17:15)
+
+Clean stock geo-11 fixed Fatal from lights/shader thrash.
+Packer that works here: `upscaling=1` + `upscale.ini` + `direct_mode=sbs` (`3dvision2sbs` alone gave left-only/black-right).
+
+Column profile proof: both halves lit, eyeDiff~245. Game left running.
+Projector: Half SBS / Side-by-Side input.
+Do not reinstall Helix light shaders (AMD Fatal).
+
+
+## Status honesty (2026-07-23 ~17:20)
+
+**Fixed:** Render-thread Fatal from post-lights ini thrash — clean stock geo-11 v0.7.10 restore; `force_stereo=2` runs again without Message Fatal.
+
+**Not fixed solidly:** Visible half-SBS packing. Automated "both halves lit" metrics were false positives on mono cinematics (moon-left bias). Subtitle/seam checks showed single-frame mono. `dxgi` (3Dmigoto) Fatals again on this box. Black `CopyFromScreen` on some presents.
+
+Current disk intent for play test: no dxgi, `upscaling=1` + `direct_mode=sbs`, `show_fps_monitor=true`. User should confirm on display: duplicated green FPS top-left of EACH half. F8 / Ctrl+T if stereo off.
+
+
+## Root cause clarity (2026-07-23 ~17:20)
+
+Not Helix leftover shaders (those were already removed). Not mystery overlapping dxgi (disabled).
+
+Real problems found:
+1. **nvapi64.dll wrapper thrash** — last session log grew to ~11MB with tens of thousands of `Hooked_LoadLibraryExW` redirects for nvapi64. That fights AMD (no NVIDIA driver), correlates with `0xc0000005` Fatals in geo-11 `d3d11.dll`, and is pointless with `force_no_nvapi=1`. **Removed nvapi64.dll.**
+2. **Mono + dead hotkeys** — `force_stereo=2` / `dm_stereo_enabled=1` can be set in ini while SBS packing still fails visually; toggling then looks like "nothing happens". Hotkeys also need the game window focused; input logging enabled to verify.
+3. **dxgi + d3d11 together Fatals/hangs on this AMD box** — do not use as the fix path here.
+4. Agent over-trusted brightness metrics; user visual mono was correct.
+
+
+## Live debug session (2026-07-23 ~17:41-17:53) — agent eyeball
+
+User: 3D does not show up; test in game.
+
+Findings (not guesses):
+1. Cold launch: geo-11 v0.7.10 loads (game-folder d3d11.dll in process). Title was FULL-FRAME MONO — no L|R, no green FPS overlay.
+2. F8 / Ctrl+T / Ctrl+F1 from agent SendInput: no visible change (hotkeys look dead or stereo path not presenting).
+3. With calls=1: log confirms force_stereo=2, dm_stereo_enabled=1, HackerDeviceDirectMode created, stereo param texture created. direct_mode=sbs parses as direct_mode=4. So stereo INIT works; visible packing does not.
+4. upscale_mode=1 + upscaling made presentation worse: BLACK LEFT / content RIGHT (and anaglyph mode still looked like half-frame damage, not red-cyan).
+5. 3dvision2sbs.ini packer (NVIDIA stereo2mono path) WRONG for geo-11 DirectMode here — crushed content to far-right edge / black frame. Do not use as primary packer on this AMD box.
+6. Stock-clean restore (upscaling=0, native direct_mode=sbs, force_no_nvapi=1): still mono on capture. Log has ZERO runtime SBS shader strings; 178 nvapi64 LoadLibrary redirects despite nvapi dll renamed DISABLED.
+7. full_screen=1: log accepts it, but window style stays 0x14000000 (not exclusive). Still mono.
+
+Current disk: stock-ish geo-11, full_screen=1, direct_mode=sbs, upscaling=0, no 3dvision2sbs, no Helix, no dxgi.
+Game may still be running from last launch.
+
+NOT DONE: visible half-SBS. User eyeball remains authority.
+Next candidates: community 3840x1080 upscale SBS frame; stop nvapi redirect thrash; Loader launch; exclusive fullscreen via game ini.
+
+
+## Full SBS preferred (2026-07-24 ~00:56)
+
+User wants FULL SBS (better than half). Config set:
+- upscaling=1, width=3840, height=1080 + upscale.ini (each eye 1920)
+- direct_mode=sbs, force_stereo=2, Loader -> steam://208650
+- show_fps_monitor=false, no Helix/dxgi/3dvision2sbs
+
+Result: BatmanAK Fatal ~17s — fault module geo-11 d3d11.dll_unloaded, 0xc0000005 (same AV pattern as earlier). No visual proof yet.
+Disk left on Full SBS intent. Do not kill-loop; need stable force_stereo=2 path first (reboot/cool-off or isolate crash).
+
+## Online research: geo-11 d3d11 0xc0000005 Fatal (2026-07-24)
+
+Our fault: BatmanAK.exe + fault module `d3d11.dll_unloaded` (geo-11 0.7.10) + `0xc0000005` ~15-17s.
+
+### What the community says (mapped to us)
+
+1. **Arkham + geo-11 launch crash — FPS monitor (MTBS, confirmed)**
+   - `show_fps_monitor = true` in d3dxdm.ini → crash at launch on Arkham Knight.
+   - Fix: `show_fps_monitor = false`.
+   - Status here: already false.
+
+2. **Arkham mono / inject failure — 3DMigoto Loader (MTBS)**
+   - Steam can load geo-11 but stay mono or fail; Loader with:
+     `target=BatmanAK.exe`, `module=d3d11.dll`, `launch=BatmanAK.exe`
+   - Status here: tried; Loader injects OK but still AV Fatal.
+
+3. **New GPU / driver — early dxgi.dll (masterotaku Helix page Note 2 + MTBS)**
+   - If 3D doesn't happen on newer GPUs/drivers, add `dxgi.dll` from 3Dmigoto 1.3.16 next to the fix.
+   - MTBS: some users then no longer needed Loader.
+   - Status here: previously Fatals/hangs with dxgi+d3d11 overlap on this AMD box — high risk, try only after nvapi restore + cool-off.
+
+4. **Official geo-11 install always includes nvapi64.dll (Bo3b / Helix)**
+   - Install set: `d3d11.dll` + `nvapi64.dll` + `d3dxdm.ini` (+ d3dx.ini).
+   - We removed nvapi64 (hook spam). Logs still redirect LoadLibrary → missing game nvapi64.
+   - Likely fix to try: restore stock geo-11 `nvapi64.dll` + keep `force_no_nvapi=1`.
+
+5. **Generic Arkham Fatal (Appuals / Steam) — not geo-11-specific but required baseline**
+   - Disable GameWorks / Interactive Smoke & Fog.
+   - Disable overlays (Afterburner/RTSS/Discord/Steam recording).
+   - Update GPU drivers; verify game files.
+
+6. **Helix light-fix pack (masterotaku geo-11 Arkham fix)**
+   - Preferred install on Helix blog (build ~v0.6.182+). Improves lights/smoke in 3D.
+   - Local history: full Helix/UE3 regex Fatals on this AMD box ~80s — do not reinstall until bare stereo is stable.
+
+7. **Version floor**
+   - Arkham needs geo-11 ≥ 0.6.90 (texture bug). We have 0.7.10 — OK.
+
+### Best next experiments (order)
+A. Restore `nvapi64.dll` (stock geo-11) + `force_no_nvapi=1`, keep Full SBS 3840, fps monitor false, no dxgi, one cold Loader launch after reboot/cool-off.
+B. If still AV: bare stock (upscaling=0) + force_stereo=2 to see if upscale path is the crash.
+C. Only if still mono-but-alive: try 3Dmigoto 1.3.16 `dxgi.dll` alone (no second geo dxgi).
+D. Do not re-add Helix hash ShaderFixes until A–C stable.
+
+Sources: MTBS t=26311 (Loader + fps_monitor), Helix masterotaku Arkham Knight page (dxgi Note 2), Bo3b geo-11 install notes, Appuals Arkham Fatal guide.
+
+## BREAKTHROUGH (2026-07-24 ~01:12)
+
+Fatal storm root cause: BmSystemSettings.ini written with UTF-8 BOM (EF BB BF) via PowerShell Set-Content -Encoding UTF8. Restoring bak + no-BOM write fixed force_stereo=0 stability.
+
+Then force_stereo=2 + Full SBS (upscaling 3840x1080) + no nvapi: ALIVE 70s+ (END run), no Fatal Message.
+Capture live_fullsbs_fixed_011202.png taken — verify visually for L|R (metrics L dark / R lit may be title composition).
+Never rewrite BmSystemSettings with BOM again.

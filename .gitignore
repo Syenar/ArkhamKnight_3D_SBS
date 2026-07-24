@@ -24,3 +24,22 @@ Desktop.ini
 *.swp
 .vscode/
 .idea/
+
+# Session captures / logs / quarantine (keep working_config clean)
+live_*.png
+probe_*.png
+probe2_*.png
+sbs_*.png
+half_sbs_*.png
+anaglyph_proof.png
+client_now.png
+desktop_capture.png
+d3d11_log*.txt
+fatal_*.txt
+loader_*.txt
+nvapi_diag_snippet.txt
+quarantine*/
+working_config/*.pre_*
+working_config/pre_*/
+working_config/half_sbs_proof.png
+working_config/3dvision2sbs.ini

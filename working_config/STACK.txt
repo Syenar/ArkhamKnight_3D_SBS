@@ -1,7 +1,11 @@
-﻿# Working stack (2026-07-23) — survives 75s+ with SBS stereo enabled
-d3d11.dll / nvapi64.dll : geo-11 v0.7.10 x64
-d3dxdm.ini              : geo-11 v0.7.10 (direct_mode=sbs, show_fps_monitor=false, dm_auto_convergence=0)
-d3dx.ini                : HelixMod Arkham Knight fix (force_stereo=2, allow_platform_update=2)
-ShaderFixes             : HelixMod Arkham Knight fix
-dxgi.dll                : 3Dmigoto 1.3.16
-Launch                  : steam://rungameid/208650
+﻿# STABLE BASELINE 2026-07-24 01:52
+GOAL: Full SBS (3840x1080) for projector — NOT incompatible; geo-11 default sbs is HALF; Full via upscaling 3840x1080 after eye proof.
+LOCKED STABLE:
+- force_stereo=2, force_no_nvapi=1
+- direct_mode=sbs (baseline; anaglyph used only for eye A/B)
+- upscaling=0 until both eyes proven
+- show_fps_monitor=false
+- no nvapi64.dll, no dxgi.dll, no Helix hash ShaderFixes
+- BmSystemSettings: Res 1920x1080, InteractiveSmoke=False, UTF-8 NO BOM (BOM caused Fatal storm)
+- Launch: Steam -applaunch 208650
+NEXT SEQUENCE: anaglyph eye proof -> half SBS visible -> Full SBS 3840x1080 -> optional dxgi 1.3.16 / Loader
