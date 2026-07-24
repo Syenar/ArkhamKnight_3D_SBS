@@ -1,0 +1,31 @@
+---
+description: dxgi.dll is REQUIRED for Arkham Knight half-SBS — never remove it; must be loader hash
+alwaysApply: true
+---
+
+# NEVER remove dxgi.dll
+
+`Binaries\Win64\dxgi.dll` is the **#1 requirement** for visible half side-by-side 3D.
+
+## Which binary (v0.6.0)
+
+- **Required:** geo-11 v0.7.10 **loader** `dxgi.dll`
+  - From `working_config\dxgi.dll` (= `downloads\extracted_geo11_v0.7.10\loader\x64\dxgi.dll`)
+  - SHA256 starts with `5B871985…`, size **174080**
+- **Forbidden:** legacy v0.5.0 dxgi `8603C2CB…` (146944) — causes packer Fatal + Operand type 50 spam
+  - Specimen only: `working_config\dxgi.dll.v050_legacy_8603C2CB_FATAL`
+
+## Hard rules
+
+- **NEVER** delete, rename, move, quarantine, or “temporarily disable” `dxgi.dll` for debugging, stability tests, A/B tests, or Fatal isolation.
+- **NEVER** launch or recommend a stack without `dxgi.dll` and call it the SBS setup.
+- Without `dxgi` the game may boot but output stays **mono**.
+- If the game Fatals with `dxgi` present: verify it is the **loader** hash, then fix something else — **do not** remove `dxgi`.
+- `Ensure-SbsStack.ps1` must restore loader `dxgi.dll` from `working_config` before Steam launch.
+- Full recipe: `working_config/MILESTONE_v0.6.0_LOADER_DXGI.md`
+
+## Quick check
+
+Before any launch or “why is it mono?” investigation: confirm  
+`D:\SteamLibrary\steamapps\common\Batman Arkham Knight\Binaries\Win64\dxgi.dll` exists  
+and SHA256 starts with `5B871985`.

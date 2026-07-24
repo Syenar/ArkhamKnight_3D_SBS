@@ -1,11 +1,27 @@
-v0.5.0 — LOCKED WORKING (user confirmed 2026-07-24 ~03:40)
+v0.6.0 — LOCKED WORKING (user confirmed L|R split 2026-07-24 ~13:36)
 
 Exact blueprint (do not "improve"):
 - stock geo-11 v0.7.10 d3d11.dll + nvapi64.dll + ShaderFixes
-- working_config d3dx.ini / d3dxdm.ini (hashes must match)
-- dxgi.dll from working_config (3Dmigoto early inject) — REQUIRED
-- force_stereo=2, direct_mode=sbs, upscaling=1, 1920x1080, upscale.ini, get_resolution_from=swap_chain
-- BmSystemSettings: Fullscreen=True, 1920x1080, UpscaleScreenPercentage=False
-- Launch: steam://rungameid/208650 only
-- NO Helix ShaderFixes, NO windowed experiment, NO HDR killer in bat, NO 3dvision2sbs include
-Proof reference: working_config/half_sbs_proof.png
+  SHA256 d3d11 = C89AEE44CCFA0240E1BFEA37F5F7357514AA6FBCB2E92AD34A974AC192BC0E4E
+  SHA256 nvapi64 = 6537BAC7CE310A0F92E199AFC4CDD0D0B58FD5F272E59B687609A0E5C9DC993C
+- working_config d3dx.ini / d3dxdm.ini
+- dxgi.dll from geo-11 v0.7.10 LOADER x64 (NOT the old v0.5.0 dxgi)
+  SHA256 dxgi = 5B8719852BBA918166CA3C8F25BDB3A41E65DA1090720B3931B66B0AB3220BB6
+  Source path: downloads\extracted_geo11_v0.7.10\loader\x64\dxgi.dll
+  Size: 174080 bytes
+- force_stereo=2, direct_mode=sbs, upscaling=1, upscale_mode=1
+- width=1920, height=1080, include ShaderFixes\upscale.ini
+- Present: run = CustomShaderUpscale (stock upscale.ini)
+- get_resolution_from = swap_chain, full_screen=0
+- BmSystemSettings: Fullscreen=True, 1920x1080
+- Launch: steam://rungameid/208650 only (Launch_ArkhamKnight_3D.bat)
+- NO Helix ShaderFixes, NO patched d3d11 (no v9/v11/v12), NO 3dvision2sbs include
+- NO width=3840 experiment
+
+CRITICAL dxgi distinction:
+- GOOD: loader dxgi 5B871985… (174080) → stock packer ALIVE, L|R split, Operand50=0
+- BAD:  legacy dxgi 8603C2CB… (146944) → packer Fatal AddRef + Operand type 50 spam
+  Kept only as: working_config\dxgi.dll.v050_legacy_8603C2CB_FATAL (DO NOT USE)
+
+Full replication: working_config/MILESTONE_v0.6.0_LOADER_DXGI.md
+Hashes: working_config/HASHES_v0.6.0.txt

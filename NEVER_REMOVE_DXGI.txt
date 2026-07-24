@@ -1,0 +1,34 @@
+================================================================================
+  NEVER REMOVE dxgi.dll - NUMBER ONE RULE FOR THIS ENTIRE PROJECT
+================================================================================
+
+File:  Batman Arkham Knight\Binaries\Win64\dxgi.dll
+
+v0.6.0 REQUIRED BINARY (loader dxgi — the one that works):
+  Source: working_config\dxgi.dll
+          = downloads\extracted_geo11_v0.7.10\loader\x64\dxgi.dll
+  SHA256: 5B8719852BBA918166CA3C8F25BDB3A41E65DA1090720B3931B66B0AB3220BB6
+  Size:   174080 bytes
+
+WITHOUT dxgi.dll              = MONO (no side-by-side). Every. Single. Time.
+WITH wrong (legacy) dxgi      = packer Fatal + "Operand type 50" spam
+WITH loader dxgi (above)      = visible L|R half-SBS (user confirmed 2026-07-24)
+
+DO NOT USE the legacy file (kept only as a warning specimen):
+  working_config\dxgi.dll.v050_legacy_8603C2CB_FATAL
+  SHA256: 8603C2CB3AEED294174B3E13613C2A62275432CC2D1D6FF863D74D7B7C7C2E01
+  Size:   146944 bytes
+
+Agents have removed dxgi dozens of times "to fix Fatals" or "to test
+stability." That is wrong. Removing dxgi does not fix the project — it
+breaks 3D and wastes half an hour every time.
+
+IF THE GAME FATAL CRASHES WITH dxgi PRESENT:
+  - Confirm hash is 5B871985... (loader), not 8603C2CB... (legacy)
+  - Keep a correct dxgi installed
+  - Fix something else
+  - Do NOT delete dxgi
+
+Launch bat / Ensure-SbsStack.ps1 must restore the LOADER dxgi every launch.
+Full recipe: working_config\MILESTONE_v0.6.0_LOADER_DXGI.md
+================================================================================

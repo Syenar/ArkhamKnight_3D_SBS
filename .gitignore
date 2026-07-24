@@ -8,6 +8,9 @@ extracted*/
 *.dll
 *.exe
 !Launch_ArkhamKnight_3D.bat
+# v0.6.0: lock the working loader dxgi (and legacy specimen) in working_config
+!working_config/dxgi.dll
+!working_config/dxgi.dll.*
 
 # Huge generated inventories / copy noise
 added_stereo_files.txt
