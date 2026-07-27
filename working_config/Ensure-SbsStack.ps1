@@ -39,10 +39,21 @@ foreach ($n in @("d3d11.dll", "nvapi64.dll")) {
 }
 $sfSrc = Join-Path $stock "ShaderFixes"
 $sfDst = Join-Path $Live "ShaderFixes"
-if (-not (Test-Path (Join-Path $sfDst "upscale.ini"))) {
+# Always replace ShaderFixes if Helix/pollution present (stock geo-11 has 8 files, 0 *replace*)
+$sfPolluted = $false
+if (Test-Path $sfDst) {
+  $replaceCount = @(Get-ChildItem $sfDst -Filter "*replace*" -File -EA SilentlyContinue).Count
+  $fileCount = @(Get-ChildItem $sfDst -File -EA SilentlyContinue).Count
+  if ($replaceCount -gt 0 -or $fileCount -gt 20) { $sfPolluted = $true }
+}
+if (-not (Test-Path (Join-Path $sfDst "upscale.ini")) -or $sfPolluted) {
   if (Test-Path $sfDst) { Remove-Item $sfDst -Recurse -Force }
+  foreach ($junk in @("ShaderFixesDM", "ShaderCache", "ShaderCacheDM")) {
+    $jp = Join-Path $Live $junk
+    if (Test-Path $jp) { Remove-Item $jp -Recurse -Force; $log.Add("wiped $junk") }
+  }
   Copy-Item $sfSrc $sfDst -Recurse -Force
-  $log.Add("copied ShaderFixes")
+  $log.Add("copied ShaderFixes (clean stock)")
 } else {
   $log.Add((Copy-IfDifferent (Join-Path $sfSrc "upscale.ini") (Join-Path $sfDst "upscale.ini")))
   $log.Add((Copy-IfDifferent (Join-Path $sfSrc "upscale.hlsl") (Join-Path $sfDst "upscale.hlsl")))

@@ -1,0 +1,16 @@
+﻿[Present]
+run = CustomShaderUpscale
+
+[CustomShaderUpscale]
+vs = upscale.hlsl
+ps = upscale.hlsl
+hs = null
+ds = null
+gs = null
+blend = disable
+cull = none
+topology = triangle_strip
+o0 = set_viewport r_bb
+ps-t101 = f_bb
+draw = 4, 0
+special = upscaling_switch_bb

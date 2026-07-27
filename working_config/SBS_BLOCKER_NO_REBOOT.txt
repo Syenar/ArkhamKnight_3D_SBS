@@ -1,0 +1,6 @@
+﻿SBS BLOCKER (no reboot) — 2026-07-24
+- Visible half-SBS requires Present run=CustomShaderUpscale (f_bb -> r_bb).
+- That Present path now AVs every time at d3d11+0x1a5abc (mode 0 and 1; minimal and stock).
+- Misparsed Present (UE3 include-before-upscale, or UTF-8 BOM) = alive but mono.
+- 3dvision2sbs optimized out (stereo_active false under geo-11).
+- Recovery: reboot, restore v0.6.0 packer, confirm L|R, then add Specular with upscale.ini included BEFORE UE3.

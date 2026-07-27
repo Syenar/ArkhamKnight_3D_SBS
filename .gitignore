@@ -51,3 +51,27 @@ working_config/*.pre_*
 working_config/pre_*/
 working_config/half_sbs_proof.png
 working_config/3dvision2sbs.ini
+working_config/probe_shots/
+working_config/d3dxdm.ini.op50test
+working_config/TEST_*.txt
+working_config/PROBE_*.txt
+working_config/HOT_FORCE_SBS.txt
+working_config/MODE0_WINNER.txt
+working_config/VERIFY_SBS_LAST.txt
+
+# Crash dumps / one-off desktop captures
+crash_dumps/
+classify_*.png
+classify_*.txt
+balance_*.png
+capture_*.png
+ready_*.png
+verify_*.png
+arkham_*.png
+
+# Rebuilt from tools/*.py — do not commit multi‑MB patched DLL blobs
+experimental_fork_*/patched_dlls/
+experimental_fork_*/**/*.patched_*
+experimental_fork_*/**/d3d11.dll.*
+*.patched_v*
+*.pre_nullcheck*

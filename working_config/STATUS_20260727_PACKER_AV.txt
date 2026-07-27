@@ -1,0 +1,42 @@
+STATUS 2026-07-27 (evening) — no-reboot progress
+
+## Breakthroughs
+
+1. Present `run=CustomShaderUpscale` must live in `ShaderFixes\upscale.ini` [Present]
+   (main d3dx.ini → Unrecognised entry; packer never ran).
+
+2. Operand50 spam = DirectMode `d3dxdm.ini` [Present] body using `convergence`/`separation`.
+   Gut that Present body → Operand50=0. Key hotkeys (Ctrl+F3..F6) still in CommandLists.
+
+3. **Packing works** with v24 + `ps-t101 = stereo2mono f_bb` + upscaling=1 + loader dxgi:
+   - Alive, Present resolves, stereo2mono runs
+   - Output is true L|R *layout* (two half-frames)
+   - But **eyes are identical** (ncc≈1.0, diff≈0) — mono content cloned into SBS
+   - Ctrl+T clears "Stereo disabled" overlay; sep hotkeys still don't create eye divergence
+
+4. GetFakeDirectMode NVAPI miss is normal on AMD (same when SBS worked historically).
+
+## Still broken
+
+Dual-eye rendering: DirectMode is not producing different L/R views.
+v24 native call-through survives packer but may skip stereo inject for natives;
+v25 (AddRef+InjectSkip+loopguard) Fatals at new offset `0x1a1685`.
+
+## Best live recipe so far (mono-SBS / no depth)
+
+- d3d11 = patched_v24 (NativeVS/PS, no NullRdx)
+- dxgi = loader 5B871985…
+- upscaling=1, upscale_mode=1, force_stereo=2, direct_mode=sbs
+- upscale.ini Present: CustomShaderUpscale with `ps-t101 = stereo2mono f_bb`
+- d3dxdm [Present] body commented (OP50)
+- dm_separation=50, conv steps ±0.15, Ctrl+T / F1 / F3-F6 intact
+
+## Next
+
+A. Make dual-eye draws work under a packer-safe patch (fix inject without 0x1a1685).
+B. Or find why dm_stereo_enabled "on" still clones the same eye into stereo2mono.
+C. Do not require reboot.
+
+## Disk
+
+Restore with Ensure-SbsStack + disarm packer when leaving idle.

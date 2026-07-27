@@ -1,0 +1,4 @@
+FAILED EXPERIMENT 2026-07-24: upscale_mode=0 without dxgi
+- Result: USER CONFIRMED MONO (agent could not see exclusive-FS frame)
+- Reverted to upscale_mode=1
+- Visible SBS on this machine still requires dxgi early inject (v0.5.0), which Fatals often
